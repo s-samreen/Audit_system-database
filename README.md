@@ -14,5 +14,11 @@ Security: SHA-256 Cryptographic Hashing
 Concepts: Database Triggers, RBAC (Role-Based Access Control), Data Integrity, Immutable Ledger.
 
 
-![Database Schema Screenshot](database-schema.png) 
+![Database Schema Screenshot](database-schema.png)    
+  
+   How to Run
+
+1. **Run the Script:** Open the `.sql` file in MySQL Workbench and click the **Lightning Bolt (⚡)** icon to set up the database and tables.
+2. **Auto-Configuration:** The script will automatically create the database (`audit_db_final`), setup tables, and activate the SHA-256 tamper-proof trigger.
+3. **Verify:** Refresh your "Schemas" panel on the left to see your fully secured audit logging system ready for use!
                                                
