@@ -1,4 +1,4 @@
-# Secure Audit Logging Database System
+[# Secure Audit Logging Database System
 
 An error-safe, tamper-evident MySQL database architecture featuring an immutable audit logging mechanism. By leveraging a custom trigger and SHA-256 cryptographic chaining, this system ensures the high integrity of system logs.
 
@@ -12,3 +12,5 @@ An error-safe, tamper-evident MySQL database architecture featuring an immutable
 Security: SHA-256 Cryptographic Hashing
 
 Concepts: Database Triggers, RBAC (Role-Based Access Control), Data Integrity, Immutable Ledger.
+![Project screenshot] (Screenshot%20db%20system.png)       
+                                               
