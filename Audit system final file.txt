@@ -1,0 +1,69 @@
+-- 1. Database Setup
+DROP DATABASE IF EXISTS audit_db_final;
+CREATE DATABASE audit_db_final;
+USE audit_db_final;
+
+-- 2. Tables Creation
+CREATE TABLE Roles (
+    role_id INT PRIMARY KEY AUTO_INCREMENT,
+    role_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB;
+
+CREATE TABLE Users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    role_id INT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    status ENUM('active', 'suspended', 'locked') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES Roles(role_id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE Audit_Logs (
+    log_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    action_performed VARCHAR(255) NOT NULL,
+    action_category ENUM('CREATE', 'READ', 'UPDATE', 'DELETE', 'LOGIN') NOT NULL,
+    data_before JSON, 
+    data_after JSON,
+    previous_hash VARCHAR(64) NOT NULL, 
+    current_hash VARCHAR(64) NOT NULL,  
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user_log FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- 3. Trigger (Error-Safe)
+DELIMITER //
+
+DROP TRIGGER IF EXISTS before_insert_audit_logs //
+
+CREATE TRIGGER before_insert_audit_logs
+BEFORE INSERT ON Audit_Logs
+FOR EACH ROW
+BEGIN
+    DECLARE last_hash VARCHAR(64);
+    
+    -- Last hash nikalna
+    SELECT current_hash INTO last_hash 
+    FROM Audit_Logs 
+    ORDER BY log_id DESC LIMIT 1;
+
+    -- Agar table empty ho, to default hash use karein
+    IF last_hash IS NULL THEN
+        SET last_hash = '0000000000000000000000000000000000000000000000000000000000000000';
+    END IF;
+
+    SET NEW.previous_hash = last_hash;
+    -- Concatenation mein errors se bachne ke liye IFNULL ka use
+    SET NEW.current_hash = SHA2(CONCAT(
+        IFNULL(CAST(NEW.user_id AS CHAR), '0'), 
+        IFNULL(NEW.action_performed, ''), 
+        NEW.action_category, 
+        NEW.previous_hash
+    ), 256);
+END;
+//
+DELIMITER ;
